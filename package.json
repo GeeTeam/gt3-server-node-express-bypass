@@ -1,0 +1,20 @@
+{
+  "name": "gt3-server-node-express-sdk",
+  "version": "3.1.0",
+  "description": "ES6",
+  "main": "app.js",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@git.gtapp.xyz:liuquan/gt3-server-node-express-sdk.git"
+  },
+  "author": "liuquan@geetest.com",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "string-random": "^0.1.3"
+  }
+}
