@@ -48,7 +48,8 @@ class GeetestLib {
     async requestRegister(params) {
         params = Object.assign(params, {
             "gt": this.geetest_id,
-            "json_format": GeetestLib.JSON_FORMAT
+            "json_format": GeetestLib.JSON_FORMAT,
+            "sdk": GeetestLib.VERSION
         });
         const register_url = GeetestLib.API_URL + GeetestLib.REGISTER_URL;
         this.gtlog(`requestRegister(): 验证初始化, 向极验发送请求, url=${register_url}, params=${JSON.stringify(params)}.`);
