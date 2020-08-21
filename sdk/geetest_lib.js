@@ -13,7 +13,7 @@ class GeetestLib {
     static JSON_FORMAT = "1";
     static NEW_CAPTCHA = true;
     static HTTP_TIMEOUT_DEFAULT = 5000; // 单位：毫秒
-    static VERSION = "node-express:3.1.0";
+    static VERSION = "node-express:3.1.1";
     static GEETEST_CHALLENGE = "geetest_challenge"; // 极验二次验证表单传参字段 chllenge
     static GEETEST_VALIDATE = "geetest_validate"; // 极验二次验证表单传参字段 validate
     static GEETEST_SECCODE = "geetest_seccode"; // 极验二次验证表单传参字段 seccode
@@ -70,7 +70,12 @@ class GeetestLib {
         }
         return origin_challenge;
     }
-
+    async localRegister(){
+        this.gtlog("获取当前缓存中bypass状态为fail，后续流程走宕机模式 ");
+        this.buildRegisterResult("", "")
+        this.gtlog(`register(): 验证初始化, lib包返回信息=${this.libResult}.`);
+        return this.libResult
+    }
     /**
      * 构建验证初始化返回数据
      */
@@ -85,7 +90,7 @@ class GeetestLib {
                 "challenge": challenge,
                 "new_captcha": GeetestLib.NEW_CAPTCHA
             };
-            this.libResult.setAll(0, JSON.stringify(data), "请求极验register接口失败，后续流程走宕机模式")
+            this.libResult.setAll(0, JSON.stringify(data), "获取当前缓存中bypass状态为fail，本地生成challenge，后续流程走宕机模式")
         } else {
             let challenge;
             if (digestmod === "md5") {

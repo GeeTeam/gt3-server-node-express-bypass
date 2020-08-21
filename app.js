@@ -1,5 +1,6 @@
 const express = require('express');
-const session = require('express-session');
+const axios = require("axios");
+const asyncRedis = require("async-redis");
 
 const GeetestConfig = require('./geetest_config')
 const GeetestLib = require('./sdk/geetest_lib')
@@ -7,12 +8,50 @@ const GeetestLib = require('./sdk/geetest_lib')
 const app = express()
 app.use(express.static('public'));
 app.use(express.urlencoded({extended: true}))
-app.use(session({
-    secret: GeetestLib.VERSION,
-    resave: false,
-    saveUninitialized: true
-}));
 
+const client = asyncRedis.createClient({"host":GeetestConfig.REDIS_HOST, "port":GeetestConfig.REDIS_PORT});
+
+async function sendRequest(params) {
+    const request_url = GeetestConfig.BYPASS_URL;
+    let bypass_res;
+    try {
+        const res = await axios({
+            url: request_url,
+            method: "GET",
+            timeout: 5000,
+            params: params
+        });
+        const resBody = (res.status === 200) ? res.data : "";
+        console.log(resBody)
+        bypass_res = resBody["status"];
+    } catch (e) {
+        bypass_res = "";
+    }
+    return bypass_res;
+}
+
+function sleep(){
+        return new Promise((resolve)=>{
+                setTimeout(resolve,GeetestConfig.CYCLE_TIME*1000);
+})
+}
+
+async function checkBypassStatus(){
+        let bypass_status;
+        while(true){
+            bypass_status = await sendRequest({"gt":GeetestConfig.GEETEST_ID});
+            if (bypass_status === "success"){
+                client.set(GeetestConfig.GEETEST_BYPASS_STATUS_KEY, bypass_status);
+            }
+            else{
+                bypass_status = "fail"
+                client.set(GeetestConfig.GEETEST_BYPASS_STATUS_KEY, bypass_status);
+            }
+            console.log(bypass_status)
+            await sleep();
+        }
+}
+checkBypassStatus()
 
 app.get("/", function (req, res) {
     res.redirect("/index.html");
@@ -32,12 +71,13 @@ app.get("/register", async function (req, res) {
     const digestmod = "md5";
     const userId = "test";
     const params = {"digestmod": digestmod, "user_id": userId, "client_type": "web", "ip_address": "127.0.0.1"}
-    const result = await gtLib.register(digestmod, params);
-    // 将结果状态写到session中，此处register接口存入session，后续validate接口会取出使用
-    // 注意，此demo应用的session是单机模式，格外注意分布式环境下session的应用
-    req.session[GeetestLib.GEETEST_SERVER_STATUS_SESSION_KEY] = result.status;
-    req.session["userId"] = userId;
-    // 注意，不要更改返回的结构和值类型
+    const bypasscache = await client.get(GeetestConfig.GEETEST_BYPASS_STATUS_KEY);
+    let result;
+    if (bypasscache === "success"){
+        result = await gtLib.register(digestmod, params);
+    }else{
+        result = await gtLib.localRegister();
+    }
     res.set('Content-Type', 'application/json;charset=UTF-8')
     return res.send(result.data);
 })
@@ -48,21 +88,10 @@ app.post("/validate", async function (req, res) {
     const challenge = req.body[GeetestLib.GEETEST_CHALLENGE];
     const validate = req.body[GeetestLib.GEETEST_VALIDATE];
     const seccode = req.body[GeetestLib.GEETEST_SECCODE];
-    // session必须取出值，若取不出值，直接当做异常退出
-    const status = req.session[GeetestLib.GEETEST_SERVER_STATUS_SESSION_KEY];
-    const userId = req.session["userId"];
-    if (status == undefined) {
-        return res.json({"result": "fail", "version": GeetestLib.VERSION, "msg": "session取key发生异常"});
-    }
+    const bypasscache = await client.get(GeetestConfig.GEETEST_BYPASS_STATUS_KEY);
     let result;
-    if (status === 1) {
-        /*
-        自定义参数,可选择添加
-            user_id 客户端用户的唯一标识，确定用户的唯一性；作用于提供进阶数据分析服务，可在register和validate接口传入，不传入也不影响验证服务的使用；若担心用户信息风险，可作预处理(如哈希处理)再提供到极验
-            client_type 客户端类型，web：电脑上的浏览器；h5：手机上的浏览器，包括移动应用内完全内置的web_view；native：通过原生sdk植入app应用的方式；unknown：未知
-            ip_address 客户端请求sdk服务器的ip地址
-        */
-        const params = {"user_id": userId, "client_type": "web", "ip_address": "127.0.0.1"}
+    var params = new Array();
+    if (bypasscache === "success"){
         result = await gtLib.successValidate(challenge, validate, seccode, params);
     } else {
         result = gtLib.failValidate(challenge, validate, seccode);

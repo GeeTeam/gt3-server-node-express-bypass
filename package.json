@@ -12,9 +12,9 @@
   "author": "liuquan@geetest.com",
   "license": "ISC",
   "dependencies": {
+    "async-redis": "^1.1.7",
     "axios": "^0.19.2",
     "express": "^4.17.1",
-    "express-session": "^1.17.1",
     "string-random": "^0.1.3"
   }
 }
