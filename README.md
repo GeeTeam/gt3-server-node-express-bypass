@@ -69,7 +69,7 @@ redis数据库|3.0.6
 
 ### 3.4.1 下载demo
 ```
-git clone git@github.com:GeeTeam/gt3-server-node-express-bypass.git 
+git clone https://github.com/GeeTeam/gt3-server-node-express-bypass.git 
 ```
 
 ### 3.4.2 修改项目配置，修改参数
@@ -111,7 +111,7 @@ package.json|依赖管理配置文件|
 
 ### 3.4.5 运行demo
 ```
-cd gt3-server-node-express-sdk
+cd gt3-server-node-express-bypass
 sudo npm install
 sudo node app.js
 ```
