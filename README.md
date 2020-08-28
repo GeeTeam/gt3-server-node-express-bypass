@@ -56,7 +56,7 @@ status|string|Y|success: 极验云服务正常<br>fail: 极验云服务异常
 
 - 当客户端向服务端发起register验证初始化和validate二次验证请求时， 先从redis中取出极验状态的标识字段status。若是status是success则走正常流程，后续向极验云发起请求；若status是fail则走宕机模式，后续不论客户端还是服务端，都不会与极验云有任何交互。
 
-## 3.3 示例部署环境
+## 3.2 示例部署环境
 条目|说明
 ----|----
 操作系统|ubuntu 16.04.6 lts
@@ -65,14 +65,14 @@ express版本|4.17.1
 redis数据库|3.0.6
 > **注意**，必须支持ES6标准
 
-## 3.4 部署流程
+## 3.3 部署流程
 
-### 3.4.1 下载demo
+### 3.3.1 下载demo
 ```
 git clone https://github.com/GeeTeam/gt3-server-node-express-bypass.git 
 ```
 
-### 3.4.2 修改项目配置，修改参数
+### 3.3.2 修改项目配置，修改参数
 > 修改项目配置
 
 从[极验管理后台](https://auth.geetest.com/login/)获取公钥(id)和私钥(key), 获取redis数据库的相关信息。配置文件的相对路径如下(配置参数说明详见代码)：
@@ -98,7 +98,7 @@ user_id|客户端用户的唯一标识，作用于提供进阶数据分析服务
 client_type|客户端类型，web：电脑上的浏览器；h5：手机上的浏览器，包括移动应用内完全内置的web_view；native：通过原生sdk植入app应用的方式；unknown：未知
 ip_address|客户端请求sdk服务器的ip地址
 
-### 3.4.3 关键文件说明
+### 3.3.3 关键文件说明
 名称|说明|相对路径
 ----|----|----
 app.js|项目启动入口和接口请求控制器，主要处理验证初始化和二次验证接口请求|
@@ -109,7 +109,7 @@ index.html|demo示例首页|public/
 gt.js|本地加载的js文件|public/
 package.json|依赖管理配置文件|
 
-### 3.4.5 运行demo
+### 3.3.4 运行demo
 ```
 cd gt3-server-node-express-bypass
 sudo npm install
@@ -117,7 +117,7 @@ sudo node app.js
 ```
 在浏览器中访问`http://localhost:3333`即可看到demo界面。
 
-### 3.4.6 模拟宕机模式
+### 3.3.5 模拟宕机模式
 
 - 注意：以下模拟方式原理分为两类，一类是极验云监控接口不可用，网络不通，等同于真实情况极验云遭受攻击或者其他异常导致云端宕机；另一类是极验云监控接口正常，极验云经过自检，发现云端状态异常，而将此异常结果返回。
 
